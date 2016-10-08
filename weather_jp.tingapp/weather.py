@@ -1,31 +1,64 @@
 # coding: utf-8
-import tingbot
-from tingbot import *
+import requests
 
-font = 'fonts/font_1_honokamarugo_1.1.ttf'
-wfont ='fonts/iconvault_forecastfont.ttf'
+class Forecast:
+    '''Container class of forecast data
+    '''
+    pass
 
-def templature(forcast):
+# 
+# @param
+def fetch_forecast(city):
+    ''' Fetch weather forecast from Livedoor weather hack API
+    
+        @param city [String] city code
+        @return [dict] forecast data
+    '''
+    params = { 'city': city }
+    url = "http://weather.livedoor.com/forecast/webservice/json/v1"
+    res = requests.get(url, params=params).json()
+    
+    forecast = Forecast()
+    forecasts = res['forecasts']
+    forecast.today = forecasts[0]
+    forecast.today.update({'temperature': temperature(forecasts[0])})
+    forecast.tomorrow = forecasts[1]
+    forecast.tomorrow.update({'temperature': temperature(forecasts[1])})
+    forecast.location = res['location']
+    forecast.copyright = { 'provider': res['copyright']['provider'][0]['name'], 'title': res['copyright']['image']['title']}
+    return forecast
+
+def temperature(forecast):
+    ''' parse temperature attribute of forecast data.
+        
+        @param forecast [dict] forecast data.
+        @return [dict] min and max temperature by celsius
+    '''
     t_min = '-'
     t_max = '-'
-    if forcast['temperature']['min'] != None:
-        t_min = forcast['temperature']['min']['celsius']
-    if forcast['temperature']['max'] != None:
-        t_max = forcast['temperature']['max']['celsius']
+    if forecast['temperature']['min'] != None:
+        t_min = forecast['temperature']['min']['celsius']
+    if forecast['temperature']['max'] != None:
+        t_max = forecast['temperature']['max']['celsius']
     return { 'min': t_min, 'max': t_max }
     
-def weather_icon(url):
-    sunny  = {'font': u'\uf101', 'color':(255, 165, 0)}
-    sun  = {'font': u'\uf113', 'color':(255, 165, 0)}
+def weather_fonts(url):
+    '''build weather icon list
+        
+        @param url [string] URL of weather image
+        @return [lit] list of weather fonts
+    '''
+    sunny      = {'font': u'\uf101', 'color':(255, 165, 0)}
+    sun        = {'font': u'\uf113', 'color':(255, 165, 0)}
     base_cloud = {'font': u'\uf105', 'color':(180,180,180)}
-    cloudy = {'font': u'\uf106', 'color':(180,180,180)}
-    rain   = {'font': u'\uf107', 'color':(100,149,237)}
-    windyrain = {'font': u'\uf10e', 'color':(100,149,237)}
-    sleet   = {'font': u'\uf10c', 'color':(100,149,237)}
-    snow   = {'font': u'\uf102', 'color':(133, 216, 247)}
-    snowy   = {'font': u'\uf10b', 'color':(133, 216, 247)}
-    windysnow = {'font': u'\uf103', 'color':(133, 216, 247)}
-    windy  = {'font': u'\uf115', 'color':(139,137,137)}
+    cloudy     = {'font': u'\uf106', 'color':(180,180,180)}
+    rain       = {'font': u'\uf107', 'color':(100,149,237)}
+    windyrain  = {'font': u'\uf10e', 'color':(100,149,237)}
+    sleet      = {'font': u'\uf10c', 'color':(100,149,237)}
+    snow       = {'font': u'\uf102', 'color':(133, 216, 247)}
+    snowy      = {'font': u'\uf10b', 'color':(133, 216, 247)}
+    windysnow  = {'font': u'\uf103', 'color':(133, 216, 247)}
+    windy      = {'font': u'\uf115', 'color':(139,137,137)}
     windyraincloud = {'font': u'\uf111', 'color':(139,137,137)}
     windysnowcloud = {'font': u'\uf109', 'color':(139,137,137)}
     rain_storm = {'font': u'\uf018', 'color':(0,0,255)}
@@ -64,29 +97,22 @@ def weather_icon(url):
             }[file]
     return code
     
-def disp_font(icon, xy=(160,120), font_size=270, align='center'):
-    for i in icon:
-        screen.text(i['font'], xy=xy, font_size=font_size, align=align, font=wfont, color=i['color'])
-
-def disp_icon(forcast):
-    icon=weather_icon(forcast['image']['url'])
-    if len(icon) > 1:
-        disp_font(icon[0], xy=(200,160), font_size=150, align='bottomright')
-        disp_font(icon[1], xy=(120,80), font_size=150, align='topleft')
-        # TODO sometime or after
-    else:
-        disp_font(icon[0])
-      
-# display weather
-# @param forcast [dict] forcast
-def disp_weather(forcast):
-    disp_icon(forcast)
+wfont ='fonts/iconvault_forecastfont.ttf'
+def weather_icons(forecast):
+    '''prepare weather icons for forecast
     
-    screen.text(u'%(date)s\n%(dateLabel)s' % forcast, xy=(10,10), align='topleft', font_size=30, font=font, color='black')
-    screen.text(u'%(telop)s' % forcast, xy=(310,230), align='bottomright', font=font, font_size=60, color='black')
-
-    # templature
-    temp = templature(forcast)
-    screen.text(u'%(min)s ℃' % temp, color='blue', font=font, xy=(310, 110), align='topright')
-    # screen.text(' / ', color='black', font=font, xy=(160, 140), align='top')
-    screen.text(u'%(max)s ℃' % temp, color='red', font=font, xy=(310, 140), align='topright')
+        @param forcast [dict] forcast data
+        @return [list(dict)] list of icon data
+    '''
+    fonts=weather_fonts(forecast['image']['url'])
+    text_list = []
+    if len(fonts) > 1:
+        font_size = 150
+        for f in fonts[0]:
+            text_list.append({"string": f['font'], "xy":(200,160), "font_size":font_size, "align":'bottomright', "color":f['color'], "font":wfont })
+        for f in fonts[1]:
+            text_list.append({"string": f['font'], "xy":(120,80), "font_size":font_size, "align":'topleft', "color":f['color'], "font":wfont })
+    else:
+        for f in fonts[0]:
+            text_list.append({"string": f['font'], "xy":(160,120), "font_size":270, "align":'center', "color":f['color'], "font":wfont })
+    return text_list
