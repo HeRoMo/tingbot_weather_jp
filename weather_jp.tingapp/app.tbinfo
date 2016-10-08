@@ -1,7 +1,7 @@
 {
     "name": "Weather JP",
     "author": "HeRoMo",
-    "caption": "Weather forcast app for Japan",
+    "caption": "Weather forecast app for Japan",
     "version": "1.0.0",
     "website": "https://github.com/HeRoMo/tingbot_weather_jp",
     "background_color": "000000"
