@@ -2,7 +2,7 @@
 import tingbot
 from tingbot import *
 
-font = tingbot.app.settings['font']
+font = 'fonts/font_1_honokamarugo_1.1.ttf'
 wfont ='fonts/iconvault_forecastfont.ttf'
 
 def templature(forcast):

@@ -24,7 +24,7 @@ def loop():
     
     forecast = today if current_hour < 21 else tomorrow
     # draw screen ##########
-    screen.fill(color=(240,240,240))
+    screen.fill(color=(255,250,240))
     screen.text( '%(prefecture)s\n%(city)s' % location,
                 font=font, font_size=20, color='black', xy=(310,10), align='topright')
     disp_weather(forecast)
